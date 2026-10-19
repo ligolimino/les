@@ -17,7 +17,9 @@ Open `ligolimino.github.io/les/`.
    kernwoord, de nieuwe klank en alle gekende klanken worden vanzelf
    ingevuld. Plak eventueel de link van de Genially. Kies **Reeks
    klaarzetten**.
-2. De tool zet een reeks volgens het stappenplan klaar: kernwoord, hoor je
+2. De tool zet een reeks volgens het stappenplan klaar: een Lingo-bord als
+   inleiding (van het kernwoord van de vorige paragraaf naar het nieuwe,
+   telkens één letter anders, als dat met gekende letters kan), kernwoord, hoor je
    hetzelfde, analyse, hoor je de klank, waar hoor je de klank, kort of
    lang, letters flitsen, hakken en plakken, klik-klak, leesrijtjes en
    dictee. Woorden voor de luisteroefeningen en het dictee komen eerst

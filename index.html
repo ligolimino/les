@@ -761,7 +761,11 @@
                 }
                 $("g-msg").textContent = "Woorden zoeken ...";
                 const wordlist = await loadWordlist();
+                const parIndex = $("g-par").value === "" ? -1 : Number($("g-par").value);
+                const previousWord = parIndex > 0 && PARAGRAPHS[parIndex - 1].level === PARAGRAPHS[parIndex].level
+                    ? PARAGRAPHS[parIndex - 1].word : "";
                 const steps = generateLesson({
+                    previous: previousWord,
                     kern,
                     nieuw: listOf($("g-nieuw").value),
                     gekend: listOf($("g-gekend").value),
@@ -905,7 +909,55 @@
         // 5. EEN LES KLAARZETTEN VOLGENS HET STAPPENPLAN
         // ============================================================
 
-        function generateLesson({ kern, nieuw, gekend, intro, wordlist }) {
+        // Lingo-bord: een weg van het vorige kernwoord naar het nieuwe,
+        // telkens één letter anders (of één erbij of eraf), alleen met
+        // gekende letters. De nieuwe letter komt pas in het laatste woord.
+        function bridge(fromWord, toWord, known, newSounds, wordlist) {
+            const target = tokenize(toWord).join("|");
+            const start = tokenize(fromWord);
+            const allowed = (parts) => parts.every((p) => known.has(p) && !newSounds.includes(p));
+            const pool = wordlist.filter((item) => item.parts.length <= 5 && allowed(item.parts));
+            const neighbours = (a, b) => {
+                if (a.length === b.length) return oneApart(a, b);
+                const [short, long] = a.length < b.length ? [a, b] : [b, a];
+                if (long.length !== short.length + 1) return false;
+                for (let i = 0; i < long.length; i += 1) {
+                    if (long.filter((p, j) => j !== i).join("|") === short.join("|")) return true;
+                }
+                return false;
+            };
+            const goal = tokenize(toWord);
+            // Breedte-eerst, met frequente woorden eerst in de wachtrij.
+            const ordered = pool.slice().sort((a, b) => Number(COMMON_WORDS.has(b.word)) - Number(COMMON_WORDS.has(a.word)));
+            const seen = new Map([[start.join("|"), null]]);
+            let frontier = [start];
+            for (let depth = 0; depth < 5 && frontier.length; depth += 1) {
+                const next = [];
+                for (const parts of frontier) {
+                    if (neighbours(parts, goal)) {
+                        const path = [goal.join("")];
+                        let key = parts.join("|");
+                        while (key !== null) {
+                            path.unshift(key.split("|").join(""));
+                            key = seen.get(key);
+                        }
+                        return path;
+                    }
+                    for (const item of ordered) {
+                        const key = item.parts.join("|");
+                        if (seen.has(key) || key === target) continue;
+                        if (neighbours(parts, item.parts)) {
+                            seen.set(key, parts.join("|"));
+                            next.push(item.parts);
+                        }
+                    }
+                }
+                frontier = next.slice(0, 400);
+            }
+            return null;
+        }
+
+        function generateLesson({ kern, nieuw, gekend, intro, wordlist, previous }) {
             const kernParts = tokenize(kern);
             const kernWord = kernParts.join("");
             const newSounds = nieuw.length ? nieuw : kernParts;
@@ -914,6 +966,19 @@
             const short = wordlist.filter((item) => item.parts.length >= 2 && item.parts.length <= 4);
             const readable = wordlist.filter((item) => item.parts.every((p) => known.has(p)));
             const steps = [];
+
+            // Stap 0: Lingo-bord als inleiding, van het vorige kernwoord
+            // naar het nieuwe.
+            if (previous) {
+                const path = bridge(previous, kernWord, known, newSounds, wordlist);
+                if (path && path.length >= 2) {
+                    steps.push({
+                        name: `Van ${previous} naar ${kernWord}`,
+                        link: tool("hakstrook", { woord: path.join("|"), bord: "ja", nieuw: newSounds[newSounds.length - 1] }),
+                        tip: `Inleiding. Lees samen '${previous}' (vorige les). Druk op volgende: er verschijnt een vraagteken. Vraag: welke letter moet hier staan? Welk woord maken we? Toon de letter en lees zoemend het nieuwe woord.\nZo kom je stap voor stap bij '${kernWord}', met de nieuwe letter '${newSounds.join(", ")}'.`,
+                    });
+                }
+            }
 
             // Stap 1: kernwoord aanbrengen.
             steps.push({
