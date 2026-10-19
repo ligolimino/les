@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Letterlab lesreeks</title>
+    <!--
+        Letterlab — lesreeks
+        Alle oefeningen van één les in de juiste volgorde, in één link.
+        Elke stap is een link naar een Letterlab-tool, een Genially of een
+        video, met een korte tip voor de lesgever. Een stap zonder link
+        toont alleen de tip (bv. een klasgesprek).
+        Zonder les in de link verschijnt de maakpagina.
+    -->
+    <style>
+        @font-face {
+            font-family: Andika;
+            src: url("assets/fonts/andika-400.woff2") format("woff2");
+            font-weight: 400;
+            font-display: block;
+        }
+        @font-face {
+            font-family: Andika;
+            src: url("assets/fonts/andika-700.woff2") format("woff2");
+            font-weight: 700;
+            font-display: block;
+        }
+
+        :root {
+            --ink: #0b4a5e;
+            --muted: #4f6f78;
+            --teal: #087f8c;
+            --teal-dark: #08646d;
+            --teal-soft: #d9f2f4;
+            --pink: #e7427a;
+            --pink-soft: #fde4ee;
+            --paper: #f7fbfb;
+            --line: #c8dfe1;
+            --good: #16805d;
+            --bad: #c2334d;
+            --tip: #fff6dc;
+            --tip-line: #efd894;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: Andika, "Segoe UI", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body.maker-page { height: auto; }
+        button, input, textarea, select { font: inherit; color: inherit; }
+        button { cursor: pointer; }
+
+        /* ================= SPELER ================= */
+        .player { height: 100%; display: flex; flex-direction: column; }
+
+        .top {
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-bottom: 1.5px solid var(--line);
+            background: #fff;
+        }
+        .lesson-title {
+            flex: none;
+            font-weight: 700;
+            color: var(--teal-dark);
+            max-width: 26%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .chips {
+            flex: 1;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            padding: 2px;
+        }
+        .chip {
+            flex: none;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            border-radius: 999px;
+            padding: 5px 12px 6px;
+            font-size: 15px;
+            color: var(--teal-dark);
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chip b {
+            display: inline-grid;
+            place-items: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--teal-soft);
+            font-size: 13px;
+        }
+        .chip.done { color: var(--muted); }
+        .chip.done b { background: var(--good); color: #fff; }
+        .chip[aria-current="step"] { background: var(--teal); border-color: var(--teal); color: #fff; }
+        .chip[aria-current="step"] b { background: #fff; color: var(--teal-dark); }
+
+        .main { position: relative; flex: 1; min-height: 0; }
+        .main iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: transparent;
+        }
+        .main iframe[hidden] { display: none; }
+        .note {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+        .note-card {
+            max-width: 760px;
+            background: #fff;
+            border: 1.5px solid var(--line);
+            border-radius: 22px;
+            padding: 28px 32px;
+            box-shadow: 0 10px 30px rgba(20, 67, 79, 0.1);
+            font-size: clamp(18px, 2.6vmin, 26px);
+            line-height: 1.5;
+        }
+        .note-card h2 { margin: 0 0 10px; color: var(--teal-dark); }
+
+        .bar {
+            flex: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 6px 10px calc(8px + env(safe-area-inset-bottom));
+            border-top: 1.5px solid var(--line);
+            background: #fff;
+        }
+        .ctrl {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            display: grid;
+            place-items: center;
+            color: var(--teal-dark);
+            flex: none;
+            text-decoration: none;
+        }
+        .ctrl svg { width: 22px; height: 22px; }
+        .ctrl.main-btn { background: var(--teal); border-color: var(--teal); color: #fff; }
+        .ctrl[aria-pressed="true"] { background: var(--tip); border-color: var(--tip-line); color: #8a6200; }
+        .ctrl:disabled { opacity: 0.35; cursor: default; }
+        .step-label {
+            min-width: 0;
+            text-align: center;
+            color: var(--muted);
+            font-size: 16px;
+            padding: 0 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .step-label strong { color: var(--ink); }
+
+        .tip-panel {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            max-width: 760px;
+            margin: 0 auto;
+            background: var(--tip);
+            border: 1.5px solid var(--tip-line);
+            border-radius: 16px;
+            padding: 14px 44px 14px 18px;
+            font-size: 17px;
+            line-height: 1.5;
+            box-shadow: 0 10px 30px rgba(60, 50, 0, 0.15);
+            white-space: pre-line;
+            max-height: 60%;
+            overflow: auto;
+            z-index: 5;
+        }
+        .tip-panel[hidden] { display: none; }
+        .tip-panel .close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 0;
+            background: transparent;
+            font-size: 22px;
+            line-height: 1;
+            color: #8a6200;
+        }
+
+        @media (max-width: 620px) {
+            .lesson-title { display: none; }
+            .chip span { display: none; }
+            .bar { gap: 5px; }
+        }
+
+        /* ================= MAAKPAGINA ================= */
+        .maker {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 28px 18px 60px;
+            line-height: 1.45;
+            font-size: 17px;
+        }
+        .maker h1 { color: var(--teal-dark); margin: 0 0 4px; }
+        .maker h2 { color: var(--teal-dark); font-size: 21px; margin: 28px 0 10px; }
+        .maker p { margin: 6px 0; }
+        .panel {
+            background: #fff;
+            border: 1.5px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+            display: grid;
+            gap: 12px;
+        }
+        .panel label { font-weight: 700; display: grid; gap: 4px; }
+        .panel label small, .hint { font-weight: 400; color: var(--muted); font-size: 15px; }
+        .panel input[type=text], .panel textarea {
+            padding: 8px 10px;
+            border: 1.5px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            width: 100%;
+        }
+        .panel textarea { resize: vertical; min-height: 64px; font-size: 15px; }
+        .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .buttons { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn {
+            border: 0;
+            border-radius: 999px;
+            background: var(--teal);
+            color: #fff;
+            padding: 9px 18px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn.light { background: #fff; color: var(--teal-dark); border: 1.5px solid var(--line); }
+        .btn.small { padding: 5px 12px; font-size: 14px; }
+        .step-edit {
+            display: grid;
+            grid-template-columns: 34px 1fr auto;
+            gap: 8px 10px;
+            align-items: start;
+            border: 1.5px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+            background: var(--paper);
+        }
+        .step-edit .nr {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--teal);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+        }
+        .step-edit .fields { display: grid; gap: 6px; }
+        .step-edit .tools { display: flex; flex-direction: column; gap: 4px; }
+        .step-edit .tools button {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            color: var(--teal-dark);
+            font-size: 16px;
+            line-height: 1;
+        }
+        .step-edit .row { display: flex; gap: 6px; align-items: center; }
+        .step-edit .row input { flex: 1; }
+        .step-edit .row a { font-size: 14px; color: var(--teal-dark); white-space: nowrap; }
+        .steps { display: grid; gap: 10px; }
+        output {
+            display: block;
+            background: var(--teal-soft);
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 14px;
+            word-break: break-all;
+            max-height: 120px;
+            overflow: auto;
+        }
+        .warn { color: var(--bad); font-size: 15px; }
+        .ok { color: var(--good); font-size: 15px; }
+    </style>
+</head>
+<body>
+    <div id="app" style="height:100%"></div>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="i-next" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></symbol>
+        <symbol id="i-prev" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></symbol>
+        <symbol id="i-full" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+        <symbol id="i-tip" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></symbol>
+        <symbol id="i-open" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+        <symbol id="i-reload" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></symbol>
+    </svg>
+
+    <script>
+    (() => {
+        "use strict";
+
+        // ============================================================
+        // 1. VASTE GEGEVENS
+        // ============================================================
+        // Een link zonder "://" is een Letterlab-tool, bv.
+        // "hakstrook/?woord=raam". Die wordt gezocht naast deze map
+        // (op ligolimino.github.io), anders op het vaste adres.
+        const ROOT = /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)
+            ? new URL("../", location.href).href
+            : "https://ligolimino.github.io/";
+        const MAX_STEPS = 40;
+        const STORAGE_KEY = "letterlab-les-v1";
+
+        const params = new URLSearchParams(location.search);
+        const app = document.getElementById("app");
+        const icon = (name) => `<svg aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // Lesreeks uit de link: titel=..., n1/l1/t1 = naam, link, tip van stap 1, ...
+        function readLesson(search) {
+            const query = new URLSearchParams(search);
+            const steps = [];
+            for (let i = 1; i <= MAX_STEPS; i += 1) {
+                const name = (query.get(`n${i}`) || "").trim();
+                const link = (query.get(`l${i}`) || "").trim();
+                const tip = (query.get(`t${i}`) || "").trim();
+                if (name || link || tip) steps.push({ name, link, tip });
+            }
+            return { title: (query.get("titel") || "").trim(), steps, tipsOpen: query.get("tips") === "open" };
+        }
+
+        // Volledig adres voor in het iframe.
+        function resolveLink(link) {
+            if (!link) return "";
+            let url = link.trim();
+            if (!/^[a-z]+:\/\//i.test(url)) {
+                url = ROOT + url.replace(/^\.{0,2}\//, "");
+            }
+            // YouTube: de insluitversie.
+            const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);
+            if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}`;
+            return url;
+        }
+
+        // Letterlab-adressen kort bewaren: "https://ligolimino.github.io/hakstrook/?..." -> "hakstrook/?..."
+        function shortLink(link) {
+            const value = (link || "").trim();
+            for (const root of [ROOT, "https://ligolimino.github.io/"]) {
+                if (value.startsWith(root)) return value.slice(root.length);
+            }
+            return value;
+        }
+
+
+        // ============================================================
+        // 2. SPELER
+        // ============================================================
+
+        function startPlayer(data) {
+            document.title = data.title ? `${data.title} | Letterlab` : "Letterlab lesreeks";
+            const state = { index: 0, visited: new Set([0]), tip: data.tipsOpen };
+            const frames = new Map();
+
+            app.innerHTML = `<div class="player">
+                <div class="top">
+                    ${data.title ? `<div class="lesson-title" title="${escapeHtml(data.title)}">${escapeHtml(data.title)}</div>` : ""}
+                    <nav class="chips" id="chips" aria-label="Stappen"></nav>
+                </div>
+                <div class="main" id="main">
+                    <div class="tip-panel" id="tip" hidden></div>
+                </div>
+                <div class="bar">
+                    <button class="ctrl" data-action="prev" aria-label="Vorige stap">${icon("prev")}</button>
+                    <span class="step-label" id="label"></span>
+                    <button class="ctrl main-btn" data-action="next" aria-label="Volgende stap">${icon("next")}</button>
+                    <button class="ctrl" data-action="tip" aria-label="Tip voor de lesgever" aria-pressed="false" title="Tip voor de lesgever (T)">${icon("tip")}</button>
+                    <button class="ctrl" data-action="reload" aria-label="Stap opnieuw laden" title="Stap opnieuw laden">${icon("reload")}</button>
+                    <a class="ctrl" id="open" target="_blank" rel="noopener" aria-label="Apart openen" title="Apart openen">${icon("open")}</a>
+                    ${document.fullscreenEnabled ? `<button class="ctrl" data-action="fullscreen" aria-label="Volledig scherm">${icon("full")}</button>` : ""}
+                </div>
+            </div>`;
+
+            const main = document.getElementById("main");
+            const chips = document.getElementById("chips");
+            const tipPanel = document.getElementById("tip");
+
+            function renderChips() {
+                chips.innerHTML = data.steps.map((step, i) => `<button class="chip ${state.visited.has(i) && i !== state.index ? "done" : ""}"
+                    data-step="${i}" ${i === state.index ? 'aria-current="step"' : ""} title="${escapeHtml(step.name || `Stap ${i + 1}`)}">
+                    <b>${i + 1}</b><span>${escapeHtml(step.name || `Stap ${i + 1}`)}</span></button>`).join("");
+                const active = chips.querySelector('[aria-current="step"]');
+                if (active) active.scrollIntoView({ block: "nearest", inline: "center" });
+            }
+
+            // Elke stap krijgt zijn eigen iframe, pas als hij voor het eerst
+            // getoond wordt. Terugkeren behoudt zo waar de groep was.
+            function frameFor(i) {
+                if (frames.has(i)) return frames.get(i);
+                const step = data.steps[i];
+                let node;
+                if (step.link) {
+                    node = document.createElement("iframe");
+                    node.src = resolveLink(step.link);
+                    node.title = step.name || `Stap ${i + 1}`;
+                    node.setAttribute("allow", "autoplay; fullscreen; microphone");
+                    node.setAttribute("allowfullscreen", "");
+                } else {
+                    node = document.createElement("div");
+                    node.className = "note";
+                    node.innerHTML = `<div class="note-card"><h2>${escapeHtml(step.name || `Stap ${i + 1}`)}</h2>
+                        <div style="white-space:pre-line">${escapeHtml(step.tip)}</div></div>`;
+                }
+                main.insertBefore(node, tipPanel);
+                frames.set(i, node);
+                return node;
+            }
+
+            function show(i) {
+                if (i < 0 || i >= data.steps.length) return;
+                state.index = i;
+                state.visited.add(i);
+                frames.forEach((node) => { node.hidden = true; });
+                const node = frameFor(i);
+                node.hidden = false;
+                const step = data.steps[i];
+                document.getElementById("label").innerHTML = `${i + 1} / ${data.steps.length} · <strong>${escapeHtml(step.name || "")}</strong>`;
+                document.querySelector('[data-action="prev"]').disabled = i === 0;
+                document.querySelector('[data-action="next"]').disabled = i === data.steps.length - 1;
+                const open = document.getElementById("open");
+                if (step.link) {
+                    open.href = resolveLink(step.link);
+                    open.hidden = false;
+                } else {
+                    open.hidden = true;
+                }
+                const tipButton = document.querySelector('[data-action="tip"]');
+                tipButton.disabled = !step.tip || !step.link;
+                tipPanel.innerHTML = `<button class="close" data-action="tip" aria-label="Tip sluiten">×</button>${escapeHtml(step.tip)}`;
+                const showTip = state.tip && step.tip && step.link;
+                tipPanel.hidden = !showTip;
+                tipButton.setAttribute("aria-pressed", String(Boolean(showTip)));
+                renderChips();
+                // Volgende stap alvast laden.
+                if (i + 1 < data.steps.length) frameFor(i + 1).hidden = true;
+            }
+
+            function toggleTip() {
+                state.tip = !state.tip;
+                show(state.index);
+            }
+
+            function reload() {
+                const node = frames.get(state.index);
+                if (node && node.tagName === "IFRAME") node.src = resolveLink(data.steps[state.index].link);
+            }
+
+            function fullscreen() {
+                if (document.fullscreenElement) document.exitFullscreen();
+                else document.documentElement.requestFullscreen().catch(() => {});
+            }
+
+            app.addEventListener("click", (event) => {
+                const chip = event.target.closest("[data-step]");
+                if (chip) {
+                    show(Number(chip.dataset.step));
+                    return;
+                }
+                const target = event.target.closest("[data-action]");
+                if (!target || target.disabled) return;
+                const action = target.dataset.action;
+                if (action === "next") show(state.index + 1);
+                else if (action === "prev") show(state.index - 1);
+                else if (action === "tip") toggleTip();
+                else if (action === "reload") reload();
+                else if (action === "fullscreen") fullscreen();
+            });
+
+            // Toetsen werken als de lesreeks zelf de focus heeft (niet de
+            // oefening): PageDown/PageUp of Alt + pijl voor de stappen.
+            document.addEventListener("keydown", (event) => {
+                const key = event.key;
+                if (key === "PageDown" || (event.altKey && key === "ArrowRight")) {
+                    event.preventDefault();
+                    show(state.index + 1);
+                } else if (key === "PageUp" || (event.altKey && key === "ArrowLeft")) {
+                    event.preventDefault();
+                    show(state.index - 1);
+                } else if (!event.altKey && !event.ctrlKey && !event.metaKey) {
+                    if (key === "t" || key === "T") toggleTip();
+                    else if (key === "f" || key === "F") fullscreen();
+                }
+            });
+
+            show(0);
+        }
+
+        // ============================================================
+        // 3. MAAKPAGINA
+        // ============================================================
+
+        function startMaker() {
+            document.body.classList.add("maker-page");
+            document.title = "Letterlab lesreeks maken";
+
+            let draft = { title: "", steps: [] };
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+                if (saved && Array.isArray(saved.steps)) draft = saved;
+            } catch (error) { /* geen opslag beschikbaar */ }
+            if (!draft.steps.length) draft.steps.push({ name: "", link: "", tip: "" });
+
+            app.innerHTML = `<div class="maker">
+                <h1>Letterlab lesreeks</h1>
+                <p>Zet alle oefeningen van één les in de juiste volgorde, met een tip voor de lesgever bij elke stap.
+                De lesgever opent in de les één link en klikt van stap naar stap.</p>
+
+                <h2>Snel een les maken volgens het stappenplan</h2>
+                <div class="panel">
+                    <label>Paragraaf <small>vult het kernwoord, de nieuwe klank en alle gekende klanken vanzelf in</small>
+                        <select id="g-par" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:#fff">
+                            <option value="">Zelf invullen</option>
+                            ${PARAGRAPHS.map((par, i) => `<option value="${i}">${par.level} ${par.nr} ${par.word}</option>`).join("")}
+                        </select></label>
+                    <div class="cols">
+                        <label>Kernwoord <small>bv. raam</small>
+                            <input type="text" id="g-kern" autocomplete="off"></label>
+                        <label>Nieuwe klanken <small>vanzelf ingevuld, aan te passen</small>
+                            <input type="text" id="g-nieuw" autocomplete="off"></label>
+                    </div>
+                    <label>Alle gekende klanken (ook de nieuwe)
+                        <small>Met een komma ertussen, bv. i,k,m,aa,n,d,r</small>
+                        <input type="text" id="g-gekend" autocomplete="off"></label>
+                    <label>Genially of andere link om het kernwoord aan te brengen (niet verplicht)
+                        <small>Bv. https://bit.ly/alfaraam of de bekijklink van de Genially</small>
+                        <input type="text" id="g-genially" autocomplete="off"></label>
+                    <div class="buttons">
+                        <button class="btn" type="button" id="g-make">Reeks klaarzetten</button>
+                        <span class="hint" id="g-msg">De stappen hieronder worden vervangen. Controleer de gekozen woorden altijd zelf.</span>
+                    </div>
+                </div>
+
+                <h2>Stappen</h2>
+                <div class="panel">
+                    <label>Titel van de les <input type="text" id="m-title" autocomplete="off"></label>
+                    <div class="steps" id="steps"></div>
+                    <div class="buttons">
+                        <button class="btn light" type="button" id="m-add">+ Stap toevoegen</button>
+                        <button class="btn light" type="button" id="m-clear">Alles leegmaken</button>
+                    </div>
+                    <p class="hint">Een link van Letterlab mag je gewoon plakken (ook uit de createpagina). Een stap zonder link toont de tip groot op het scherm, bv. voor een klasgesprek.</p>
+                </div>
+
+                <h2>Link</h2>
+                <div class="panel">
+                    <output id="m-out"></output>
+                    <div class="buttons">
+                        <a class="btn" id="m-open" target="_blank" rel="noopener">Lesreeks openen</a>
+                        <button class="btn light" type="button" id="m-copy">Link kopiëren</button>
+                        <button class="btn light" type="button" id="m-embed">Genially-code kopiëren</button>
+                        <span class="hint" id="m-length"></span>
+                    </div>
+                    <label>Bestaande lesreeks aanpassen
+                        <small>Plak de link van een lesreeks en kies Laden.</small>
+                        <span style="display:flex;gap:8px"><input type="text" id="m-import" autocomplete="off"><button class="btn small" type="button" id="m-load">Laden</button></span>
+                    </label>
+                </div>
+            </div>`;
+
+            const $ = (id) => document.getElementById(id);
+
+            function save() {
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(draft)); } catch (error) { /* geen opslag */ }
+            }
+
+            function renderSteps() {
+                $("steps").innerHTML = draft.steps.map((step, i) => `<div class="step-edit" data-i="${i}">
+                    <span class="nr">${i + 1}</span>
+                    <div class="fields">
+                        <input type="text" data-field="name" placeholder="Naam van de stap (bv. Kernwoord)" value="${escapeHtml(step.name)}">
+                        <span class="row"><input type="text" data-field="link" placeholder="Link (niet verplicht)" value="${escapeHtml(step.link)}">
+                            ${step.link ? `<a href="${escapeHtml(resolveLink(step.link))}" target="_blank" rel="noopener">testen</a>` : ""}</span>
+                        <textarea data-field="tip" placeholder="Tip voor de lesgever">${escapeHtml(step.tip)}</textarea>
+                    </div>
+                    <div class="tools">
+                        <button type="button" data-move="-1" aria-label="Naar boven" ${i === 0 ? "disabled" : ""}>↑</button>
+                        <button type="button" data-move="1" aria-label="Naar beneden" ${i === draft.steps.length - 1 ? "disabled" : ""}>↓</button>
+                        <button type="button" data-remove aria-label="Verwijderen">✕</button>
+                    </div>
+                </div>`).join("");
+            }
+
+            function buildUrl() {
+                const query = new URLSearchParams();
+                if (draft.title.trim()) query.set("titel", draft.title.trim());
+                let n = 0;
+                draft.steps.forEach((step) => {
+                    if (!step.name.trim() && !step.link.trim() && !step.tip.trim()) return;
+                    n += 1;
+                    query.set(`n${n}`, step.name.trim());
+                    if (step.link.trim()) query.set(`l${n}`, shortLink(step.link));
+                    if (step.tip.trim()) query.set(`t${n}`, step.tip.trim());
+                });
+                const base = new URL("./", location.href).href.split("?")[0];
+                return `${base}?${query.toString()}`;
+            }
+
+            function refreshOutput() {
+                const url = buildUrl();
+                $("m-out").textContent = url;
+                $("m-open").href = url;
+                $("m-length").textContent = url.length > 6000
+                    ? `Lange link (${url.length} tekens): kort de tips in of gebruik bit.ly.`
+                    : "";
+                save();
+            }
+
+            $("m-title").value = draft.title;
+            renderSteps();
+            refreshOutput();
+
+            $("m-title").addEventListener("input", () => {
+                draft.title = $("m-title").value;
+                refreshOutput();
+            });
+            $("steps").addEventListener("input", (event) => {
+                const field = event.target.dataset.field;
+                const box = event.target.closest("[data-i]");
+                if (!field || !box) return;
+                draft.steps[Number(box.dataset.i)][field] = event.target.value;
+                refreshOutput();
+            });
+            $("steps").addEventListener("change", (event) => {
+                if (event.target.dataset.field === "link") renderSteps();
+            });
+            $("steps").addEventListener("click", (event) => {
+                const box = event.target.closest("[data-i]");
+                if (!box) return;
+                const i = Number(box.dataset.i);
+                const move = event.target.closest("[data-move]");
+                if (move) {
+                    const j = i + Number(move.dataset.move);
+                    if (j < 0 || j >= draft.steps.length) return;
+                    [draft.steps[i], draft.steps[j]] = [draft.steps[j], draft.steps[i]];
+                } else if (event.target.closest("[data-remove]")) {
+                    draft.steps.splice(i, 1);
+                    if (!draft.steps.length) draft.steps.push({ name: "", link: "", tip: "" });
+                } else {
+                    return;
+                }
+                renderSteps();
+                refreshOutput();
+            });
+            $("m-add").addEventListener("click", () => {
+                if (draft.steps.length >= MAX_STEPS) return;
+                draft.steps.push({ name: "", link: "", tip: "" });
+                renderSteps();
+                refreshOutput();
+            });
+            $("m-clear").addEventListener("click", () => {
+                draft = { title: "", steps: [{ name: "", link: "", tip: "" }] };
+                $("m-title").value = "";
+                renderSteps();
+                refreshOutput();
+            });
+            $("m-load").addEventListener("click", () => {
+                const value = $("m-import").value.trim();
+                const search = value.includes("?") ? value.slice(value.indexOf("?")) : "";
+                const loaded = readLesson(search);
+                if (!loaded.steps.length) {
+                    $("m-import").value = "";
+                    $("m-import").placeholder = "Geen lesreeks gevonden in deze link.";
+                    return;
+                }
+                draft = { title: loaded.title, steps: loaded.steps };
+                $("m-title").value = draft.title;
+                renderSteps();
+                refreshOutput();
+            });
+
+            function copy(text, button) {
+                const done = () => {
+                    const old = button.textContent;
+                    button.textContent = "Gekopieerd";
+                    setTimeout(() => { button.textContent = old; }, 1400);
+                };
+                if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done);
+            }
+            $("m-copy").addEventListener("click", (event) => copy(buildUrl(), event.target));
+            $("m-embed").addEventListener("click", (event) => copy(
+                `<iframe src="${buildUrl()}" width="100%" height="640" style="border:0" allow="autoplay; fullscreen; microphone" allowfullscreen title="Letterlab lesreeks"></iframe>`,
+                event.target));
+
+            // ---------- Snel klaarzetten ----------
+            $("g-kern").addEventListener("input", () => {
+                const parts = tokenize($("g-kern").value);
+                $("g-nieuw").value = parts.join(",");
+                if (!draft.title.trim() || draft.title === lastAutoTitle) {
+                    draft.title = $("g-kern").value.trim();
+                    lastAutoTitle = draft.title;
+                    $("m-title").value = draft.title;
+                }
+            });
+            let lastAutoTitle = "";
+            $("g-par").addEventListener("change", () => {
+                const i = $("g-par").value;
+                if (i === "") return;
+                const par = PARAGRAPHS[Number(i)];
+                // Alle klanken van de vorige paragrafen (A, dan B) + deze.
+                const known = [];
+                PARAGRAPHS.slice(0, Number(i) + 1).forEach((item) => item.nieuw.forEach((x) => {
+                    if (!known.includes(x)) known.push(x);
+                }));
+                $("g-kern").value = par.word;
+                $("g-nieuw").value = par.nieuw.join(",");
+                $("g-gekend").value = known.join(",");
+                draft.title = `${par.level} ${par.nr} ${par.word}`;
+                lastAutoTitle = draft.title;
+                $("m-title").value = draft.title;
+                refreshOutput();
+            });
+            $("g-make").addEventListener("click", async () => {
+                const kern = $("g-kern").value.trim().toLowerCase();
+                if (!kern) {
+                    $("g-msg").innerHTML = `<span class="warn">Vul eerst een kernwoord in.</span>`;
+                    return;
+                }
+                $("g-msg").textContent = "Woorden zoeken ...";
+                const wordlist = await loadWordlist();
+                const steps = generateLesson({
+                    kern,
+                    nieuw: listOf($("g-nieuw").value),
+                    gekend: listOf($("g-gekend").value),
+                    intro: $("g-genially").value.trim(),
+                    wordlist,
+                });
+                draft.steps = steps;
+                if (!draft.title.trim()) draft.title = kern;
+                $("m-title").value = draft.title;
+                renderSteps();
+                refreshOutput();
+                $("g-msg").innerHTML = `<span class="ok">${steps.length} stappen klaargezet.</span> Controleer de woorden en pas aan waar nodig.`;
+            });
+        }
+
+        // ============================================================
+        // 3b. KAPSTOKWOORDEN VAN TAALCOMPLEET LEER LEZEN EN SCHRIJVEN
+        // ============================================================
+        // In leervolgorde: elk kapstokwoord brengt één nieuwe klank.
+        // Paragrafen zonder nieuwe klank (getallen, herhaling) en de
+        // clusters van Alfa B staan er niet in: die stel je zelf samen.
+        const PARAGRAPHS = [
+            ["A", "1.1", "ik", "i,k"], ["A", "1.2", "kim", "m"], ["A", "1.3", "kip", "p"],
+            ["A", "1.4", "kin", "n"], ["A", "1.5", "naam", "aa"], ["A", "1.6", "daan", "d"],
+            ["A", "2.1", "raam", "r"], ["A", "2.2", "map", "a"], ["A", "2.3", "kat", "t"],
+            ["A", "2.4", "tas", "s"], ["A", "2.5", "gat", "g"], ["A", "3.1", "zit", "z"],
+            ["A", "3.2", "lam", "l"], ["A", "3.3", "mes", "e"], ["A", "3.4", "ijs", "ij"],
+            ["A", "3.5", "vis", "v"], ["A", "4.1", "teen", "ee"], ["A", "4.2", "haar", "h"],
+            ["A", "4.3", "been", "b"], ["A", "4.4", "oog", "oo"], ["A", "4.5", "voet", "oe"],
+            ["A", "5.1", "jas", "j"], ["A", "5.2", "riem", "ie"], ["A", "5.3", "sok", "o"],
+            ["A", "6.1", "muur", "uu"], ["A", "6.2", "huis", "ui"], ["A", "6.3", "hout", "ou"],
+            ["A", "7.1", "bus", "u"], ["A", "7.2", "fout", "f"], ["A", "7.3", "neus", "eu"],
+            ["A", "8.1", "wiel", "w"], ["A", "8.2", "geit", "ei"],
+            ["B", "1.2", "acht", "ch"], ["B", "2.1", "school", "sch"], ["B", "3.1", "saus", "au"],
+            ["B", "5.1", "ring", "ng"],
+        ].map(([level, nr, word, nieuw]) => ({ level, nr, word, nieuw: nieuw.split(",") }));
+
+        // ============================================================
+        // 4. KLANKEN EN WOORDEN
+        // ============================================================
+
+        const VOWELS = ["aa", "ee", "oo", "uu", "ie", "oe", "eu", "ui", "ei", "ij",
+            "ou", "au", "a", "e", "i", "o", "u"];
+        const COMPOUNDS = ["sch", "oe", "aa", "ee", "oo", "uu", "ie", "ei", "ij",
+            "ui", "eu", "ou", "au", "ng", "ch"].sort((a, b) => b.length - a.length);
+        // Kort en lang die op elkaar lijken.
+        const PARTNERS = { a: "aa", aa: "a", e: "ee", ee: "e", o: "oo", oo: "o", u: "uu", uu: "u", i: "ie", ie: "i" };
+
+        // Eenvoudige, frequente woorden. Bij luisteroefeningen en het
+        // dictee kiest de tool eerst hieruit: cursisten moeten de
+        // betekenis kennen. Vul gerust aan.
+        const COMMON_WORDS = new Set([
+            "aap", "arm", "ook", "ik", "in", "is", "kim", "daan", "naam", "baan", "bad", "bak", "bal", "band", "bank", "bed", "been", "beer", "bel",
+            "berg", "bes", "bier", "bij", "bijl", "blad", "boek", "boer", "bom", "boom", "boon", "boos",
+            "boot", "bord", "bos", "bril", "brood", "broek", "buik", "bus", "dak", "das", "deur", "dik",
+            "dier", "doek", "doos", "dorp", "duim", "duur", "ei", "fiets", "fles", "fout", "gat", "geel",
+            "geit", "geld", "gras", "haar", "haas", "hal", "ham", "hand", "hard", "heet", "hek", "hok",
+            "hond", "hoed", "hoek", "hoofd", "hoop", "hout", "huis", "ijs", "jam", "jas", "jurk", "kaas",
+            "kam", "kaal", "kap", "kar", "kast", "kat", "keel", "kerk", "kers", "kies", "kin", "kip",
+            "kist", "klok", "knie", "koe", "koek", "kok", "kom", "kool", "koop", "kop", "krant", "kus",
+            "lam", "lamp", "land", "lang", "lap", "leeg", "lees", "leuk", "lief", "lijm", "lip", "maan",
+            "maag", "maand", "maar", "man", "map", "mat", "mes", "mier", "mok", "mond", "moe", "muis",
+            "muur", "naam", "nat", "neef", "neus", "nek", "net", "noot", "nul", "oog", "oom", "oor",
+            "oud", "paar", "pad", "pak", "pan", "pap", "pen", "pet", "pijl", "pijn", "pil", "pit",
+            "pot", "pop", "raam", "rat", "reis", "riem", "rijk", "rijst", "rok", "rood", "room", "rug",
+            "ruit", "sap", "schoen", "school", "sjaal", "sok", "soep", "som", "stoel", "straat", "tak", "tand",
+            "tas", "taart", "teen", "tent", "tien", "tijd", "top", "trap", "tuin", "uur", "vaas", "vak",
+            "val", "vel", "vier", "vis", "voet", "vos", "vuur", "waar", "wang", "warm", "was", "week",
+            "weg", "wiel", "wijn", "wind", "wit", "wol", "zak", "zee", "zeep", "zes", "zin", "zon",
+            "zoon", "zout", "zuur", "zus",
+        ]);
+
+        function tokenize(word) {
+            const letters = String(word).toLowerCase().replace(/[^a-zà-ÿ]/g, "");
+            const out = [];
+            let i = 0;
+            while (i < letters.length) {
+                const found = COMPOUNDS.find((compound) => letters.startsWith(compound, i));
+                out.push(found || letters[i]);
+                i += (found || letters[i]).length;
+            }
+            return out;
+        }
+        const listOf = (value) => String(value).toLowerCase().split(",").map((x) => x.trim()).filter(Boolean);
+        const isVowel = (part) => VOWELS.includes(part);
+        const shapeOf = (parts) => parts.map((p) => (isVowel(p) ? "k" : "m")).join("");
+
+        function loadScript(src) {
+            return new Promise((resolve) => {
+                const node = document.createElement("script");
+                node.src = src;
+                node.onload = () => resolve(true);
+                node.onerror = () => resolve(false);
+                document.head.appendChild(node);
+            });
+        }
+        async function loadWordlist() {
+            for (const src of ["../klikklak/wordlist-v1.js", "wordlist-v1.js"]) {
+                if (window.LETTERLAB_WORDLISTS?.v1?.length) break;
+                // eslint-disable-next-line no-await-in-loop
+                await loadScript(src);
+            }
+            const words = new Set(window.LETTERLAB_WORDLISTS?.v1 || []);
+            COMMON_WORDS.forEach((word) => words.add(word));
+            return [...words].map((word) => ({ word, parts: tokenize(word) }))
+                .filter((item) => item.parts.join("") === item.word);
+        }
+
+        function shuffled(items) {
+            const copy = items.slice();
+            for (let i = copy.length - 1; i > 0; i -= 1) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+        function oneApart(a, b) {
+            if (a.length !== b.length) return false;
+            let diff = 0;
+            for (let i = 0; i < a.length; i += 1) if (a[i] !== b[i]) diff += 1;
+            return diff === 1;
+        }
+        const pick = (items, n) => shuffled(items).slice(0, n);
+        // Eerst frequente woorden, pas daarna de rest van de woordenlijst.
+        function pickCommon(items, n) {
+            const first = shuffled(items.filter((item) => COMMON_WORDS.has(item.word)));
+            const rest = shuffled(items.filter((item) => !COMMON_WORDS.has(item.word)));
+            return first.concat(rest).slice(0, n);
+        }
+
+        // Korte link naar een Letterlab-tool, met leesbare komma's en |.
+        function tool(path, values) {
+            const query = new URLSearchParams();
+            Object.entries(values).forEach(([key, value]) => {
+                if (value !== "" && value !== null && value !== undefined) query.set(key, value);
+            });
+            return `${path}/?${query.toString().replace(/%2C/gi, ",").replace(/%7C/gi, "|").replace(/%2F/gi, "/")}`;
+        }
+
+        // ============================================================
+        // 5. EEN LES KLAARZETTEN VOLGENS HET STAPPENPLAN
+        // ============================================================
+
+        function generateLesson({ kern, nieuw, gekend, intro, wordlist }) {
+            const kernParts = tokenize(kern);
+            const kernWord = kernParts.join("");
+            const newSounds = nieuw.length ? nieuw : kernParts;
+            const known = new Set([...gekend, ...kernParts, ...newSounds]);
+            const knownList = [...known];
+            const short = wordlist.filter((item) => item.parts.length >= 2 && item.parts.length <= 4);
+            const readable = wordlist.filter((item) => item.parts.every((p) => known.has(p)));
+            const steps = [];
+
+            // Stap 1: kernwoord aanbrengen.
+            steps.push({
+                name: "Kernwoord",
+                link: intro || tool("hakstrook", { woord: kernWord, woordbeeld: "ja", beeld: kernWord }),
+                tip: `Breng het kernwoord '${kernWord}' aan met een verhaal, een voorwerp of een foto. Laat elke cursist het woord zeggen en let op de uitspraak.\nToon daarna het woordbeeld en de hakstrook: het is vijf keer hetzelfde woord (foto, woord, strook, letters, geschreven).\nDe cursisten lezen het woord nog niet echt: ze herkennen het.`,
+            });
+
+            // Stap 2: hoor je het woord? (auditieve discriminatie op woordniveau)
+            const near = short.filter((item) => item.word !== kernWord
+                && (oneApart(item.parts, kernParts) || item.parts.slice().reverse().join("") === kernWord));
+            const others = pickCommon(near, 4).map((item) => item.word);
+            if (others.length >= 2) {
+                const pairs = [`${kernWord}/${kernWord}`, `${kernWord}/${others[0]}`, `${others[1]}/${kernWord}`,
+                    `${kernWord}/${kernWord}`];
+                if (others[2]) pairs.push(`${kernWord}/${others[2]}`);
+                if (others[3]) pairs.push(`${others[3]}/${kernWord}`);
+                steps.push({
+                    name: "Hoor je hetzelfde?",
+                    link: tool("luister", { soort: "zelfde", woorden: shuffled(pairs).join(","), toon: "nee" }),
+                    tip: `Doe dit eerst mondeling: zeg een reeks woorden die op '${kernWord}' lijken (bv. ${others.join(", ")}). De cursisten geven een teken (op tafel kloppen, kaartje omhoog) als ze '${kernWord}' horen.\nDaarna met de tool: hoor je twee keer hetzelfde woord of niet?`,
+                });
+            }
+
+            // Stap 3: analyse van het kernwoord.
+            steps.push({
+                name: "Analyse",
+                link: tool("hakstrook", { woord: kernWord }),
+                tip: `Lees het woord met overdreven lange klanken (Zoem). Vouw een letter weg: wat lezen we nu? Vertrek telkens opnieuw van het hele woord.\nToon en verklank daarna elke letter apart (Hak). Spreek letters uit als klank: mmm, niet em.\nDe cursisten wijzen de letters aan en verklanken ze. Laat ze hun eigen structureerstrook verknippen voor de letterenvelop.`,
+            });
+
+            // Stap 4 en 5: per nieuwe klank luisteren, en de plaats tonen.
+            newSounds.forEach((sound) => {
+                const withSound = short.filter((item) => item.parts.includes(sound) && item.word !== kernWord);
+                const without = short.filter((item) => !item.parts.includes(sound));
+                const yes = pickCommon(withSound, 4).map((item) => item.word);
+                const no = pickCommon(without, 3).map((item) => item.word);
+                if (yes.length >= 2) {
+                    steps.push({
+                        name: `Hoor je ${sound}?`,
+                        link: tool("luister", { soort: "hoor", klank: sound, woorden: shuffled([kernWord, ...yes, ...no]).join(",") }),
+                        tip: `Hang de letter '${sound}' op het bord en verwijs er steeds naar. Doe de oefening eerst mondeling: zonder afbeelding luisteren cursisten echt naar het woord.\nVraag daarna: ken je nog woorden met '${sound}'?`,
+                    });
+                }
+                if (!isVowel(sound)) {
+                    const once = withSound.filter((item) => item.parts.filter((p) => p === sound).length === 1);
+                    const begin = pickCommon(once.filter((item) => item.parts[0] === sound), 2);
+                    const end = pickCommon(once.filter((item) => item.parts[item.parts.length - 1] === sound), 2);
+                    const middle = pickCommon(once.filter((item) => item.parts[0] !== sound && item.parts[item.parts.length - 1] !== sound), 2);
+                    const placeWords = shuffled([kernWord, ...begin, ...middle, ...end].map((x) => (typeof x === "string" ? x : x.word)));
+                    if (placeWords.length >= 4) {
+                        steps.push({
+                            name: `Waar hoor je ${sound}?`,
+                            link: tool("luister", { soort: "plaats", klank: sound, woorden: placeWords.join(",") }),
+                            tip: `Waar hoor je '${sound}': vooraan, in het midden of achteraan? De cursisten tonen het op een blanco structureerstrook of tikken het vakje aan.`,
+                        });
+                    }
+                }
+                const partner = PARTNERS[sound];
+                if (partner && known.has(partner)) {
+                    const a = pickCommon(short.filter((item) => item.parts.includes(sound) && !item.parts.includes(partner)), 3);
+                    const b = pickCommon(short.filter((item) => item.parts.includes(partner) && !item.parts.includes(sound)), 3);
+                    if (a.length >= 2 && b.length >= 2) {
+                        steps.push({
+                            name: `${sound} of ${partner}?`,
+                            link: tool("luister", { soort: "welke", keuzes: [sound, partner].sort().join(","), woorden: shuffled([...a, ...b].map((x) => x.word)).join(",") }),
+                            tip: `Kort of lang? Laat eerst horen: ${a[0].word} - ${b[0].word}. Cursisten hebben twee kaartjes (${sound} en ${partner}) en tonen het juiste.`,
+                        });
+                    }
+                }
+            });
+
+            // Stap 6: alle gekende letters flitsen.
+            steps.push({
+                name: "Letters flitsen",
+                link: tool("flitser", { items: knownList.join(","), mix: "ja", luister: "ja" }),
+                tip: "Flits alle gekende letters; de cursisten verklanken. Let op letters die op elkaar lijken (b-d, m-n) en op kort en lang.\nVariatie: een letter kort tonen, wegdoen, en de cursisten schrijven hem (flitsdictee).",
+            });
+
+            // Stap 7: hakken en plakken (synthese) met een wisselrijtje.
+            const same = readable.filter((item) => item.parts.length === kernParts.length);
+            const chain = [kernParts];
+            const used = new Set([kernWord]);
+            while (chain.length < 6) {
+                const last = chain[chain.length - 1];
+                const options = pickCommon(same.filter((item) => !used.has(item.word) && oneApart(item.parts, last)), 50);
+                if (!options.length) break;
+                chain.push(options[0].parts);
+                used.add(options[0].word);
+            }
+            if (chain.length >= 3) {
+                steps.push({
+                    name: "Hakken en plakken",
+                    link: tool("hakstrook", { woord: chain.map((parts) => parts.join("")).join("|") }),
+                    tip: "Neem telkens één letter weg en zet er een gekende letter voor in de plaats. Benoem de nieuwe letter apart, voeg hem toe en lees zoemend het nieuwe woord. Laat de cursisten het woord daarna zelf lezen.\nLukt het niet? Oefen dan eerst met korte woorden (km en mk: ik - s - sik).",
+                });
+            }
+
+            // Stap 8: letterenvelop / klik-klak.
+            const consonants = knownList.filter((p) => !isVowel(p));
+            const vowels = knownList.filter((p) => isVowel(p));
+            if (consonants.length >= 2 && vowels.length >= 1) {
+                steps.push({
+                    name: "Klik-klak",
+                    link: tool("klikklak", { wb: "v1", woorden: "ja", p1: consonants.join(","), p2: vowels.join(","), p3: consonants.join(",") }),
+                    tip: "De lesgever zegt een woord, de cursisten maken het met de letterenvelop. Wissel telkens één klank: zij mogen maar één letter veranderen.\nDaarna zelf woorden maken met het klik-klakboekje en luidop lezen.",
+                });
+            }
+
+            // Stap 9: leesrijtjes (automatiseren).
+            const shapes = ["km", "mk", "mkm"];
+            const kernShape = shapeOf(kernParts);
+            if (!shapes.includes(kernShape)) shapes.push(kernShape);
+            steps.push({
+                name: "Leesrijtjes",
+                link: tool("leesrijtjes", { letters: knownList.join(","), vorm: shapes.join(","), aantal: 12, luister: "ja", titel: kernWord }),
+                tip: "Elke les. De cursisten lezen luidop, alleen klankzuivere woorden. Onbestaande woorden mogen: de betekenis is hier niet belangrijk.\nLukt het lezen niet, ga dan terug naar hakken en plakken.",
+            });
+
+            // Stap 10: dictee.
+            const dictWords = pickCommon(readable.filter((item) => item.parts.length === 3 && shapeOf(item.parts) === "mkm" && item.word !== kernWord), 3);
+            const dictList = [kernWord, ...dictWords.map((item) => item.word)];
+            const dictParts = dictList.map((word) => tokenize(word));
+            steps.push({
+                name: "Dictee",
+                link: tool("dictee", {
+                    woord: dictList.join("|"),
+                    ontbreekt: dictParts.map((parts) => parts.map((p, i) => i + 1).join(",")).join("|"),
+                    weergave: "volledig",
+                }),
+                tip: "Laat de cursisten verklanken terwijl ze schrijven. Schrijf voor op het bord tussen vier lijnen.\nIn de eerste modules wordt het schrijven nog niet beoordeeld.",
+            });
+
+            return steps;
+        }
+
+        // ============================================================
+        // 6. START: speler als er een les in de link staat, anders maken
+        // ============================================================
+        const lesson = readLesson(location.search);
+        if (lesson.steps.length) startPlayer(lesson);
+        else startMaker();
+    })();
+    </script>
+</body>
+</html>
